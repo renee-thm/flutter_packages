@@ -572,7 +572,7 @@ public class ShareUtil{
                             do {
                                 try imageData.write(to: tempFile, options: .atomic)
                                 let documentInteractionController = UIDocumentInteractionController(url: tempFile)
-                                documentInteractionController.uti = "net.whatsapp.image"
+                                documentInteractionController.uti = "public.jpeg"
                                 documentInteractionController.presentOpenInMenu(from: CGRect.zero, in: UIApplication.topViewController()!.view, animated: true)
 
                             } catch {
