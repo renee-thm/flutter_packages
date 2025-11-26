@@ -451,34 +451,15 @@ public class ShareUtil{
             }
 
 
-            if #available(iOS 10, *){
-                let pasteboardName = "facebook." + appId
-                guard let facebookPasteboard = UIPasteboard(name: UIPasteboard.Name(rawValue: pasteboardName), create: true) else {
-                     result(FlutterError(code: "PASTEBOARD_ERROR", message: "Could not create Facebook pasteboard", details: nil))
-                     return
-                }
-    
-                let pasteboardOptions = [
-                    UIPasteboard.OptionsKey.expirationDate: Date().addingTimeInterval(60 * 5)
-                ]
-                
-                // 🔑 FIX 2: Set the items on the Facebook-specific pasteboard
-                // NOT UIPasteboard.general!
-                facebookPasteboard.setItems([pasteboardItems], options: pasteboardOptions) 
-                
-                // 🔑 FIX 3: Open the app
-                UIApplication.shared.open(facebookURL, options: [:]) { success in
-                     if success {
-                         // Note: You can't confirm the story was posted, only that the app opened.
-                         result(self.SUCCESS) 
-                     } else {
-                         // Should be covered by canOpenURL, but good for safety
-                        result(ERROR_APP_NOT_AVAILABLE)
-                     }
-                }
-            } else {
-                result(ERROR_FEATURE_NOT_AVAILABLE_FOR_THIS_VERSON)
-            }
+             if #available(iOS 10, *){
+                    let pasteboardOptions = [
+                        UIPasteboard.OptionsKey.expirationDate: Date().addingTimeInterval(60 * 5)
+                    ]
+                    UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
+                    UIApplication.shared.open(facebookURL, options: [:])
+             }
+            result(self.SUCCESS)
+            return
         } else {
             result(ERROR_APP_NOT_AVAILABLE)
         }
