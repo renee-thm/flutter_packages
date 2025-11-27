@@ -424,14 +424,24 @@ public class ShareUtil{
             return
         }
         
-        
         if (UIApplication.shared.canOpenURL(facebookURL)) {
-            var pasteboardItems = [
-                "com.facebook.sharedSticker.attributionURL": ["fb\(facebookID)://story"],
-                "com.facebook.sharedSticker.backgroundTopColor": backgroundTopColor ?? "",
-                "com.facebook.sharedSticker.backgroundBottomColor": backgroundBottomColor ?? "",
-                "com.facebook.sharedSticker.appID": "fb"+facebookID as Any,
-            ]
+            var pasteboardItems: [String: Any] = [:]
+            if #available(iOS 18, *) {
+                pasteboardItems = [
+                    "com.facebook.sharedSticker.attributionURL": [attributionURL ?? ""],
+                    "com.facebook.sharedSticker.backgroundTopColor": backgroundTopColor ?? "",
+                    "com.facebook.sharedSticker.backgroundBottomColor": backgroundBottomColor ?? "",
+                    "com.facebook.sharedSticker.appID": facebookID as Any,
+                ]
+            } else {
+                pasteboardItems = [
+                    "com.facebook.sharedSticker.attributionURL":  ["fb\(facebookID)://story"],
+                    "com.facebook.sharedSticker.backgroundTopColor": backgroundTopColor ?? "",
+                    "com.facebook.sharedSticker.backgroundBottomColor": backgroundBottomColor ?? "",
+                    "com.facebook.sharedSticker.appID": "fb"+facebookID as Any,
+                ]
+            }
+            
             var backgroundImage: UIImage?;
             if(!(imagePath==nil)){
                 backgroundImage =  UIImage.init(contentsOfFile: imagePath!)
@@ -454,7 +464,6 @@ public class ShareUtil{
                     pasteboardItems["com.facebook.sharedSticker.backgroundVideo"] = backgroundVideoData
                 }
             }
-
 
              if #available(iOS 10, *){
                     let pasteboardOptions = [
