@@ -582,12 +582,44 @@ public class ShareUtil{
                             // Append the filename to the Caches Directory path
                             let tempFile = cachesDirectory.appendingPathComponent("screenshot.png")
                             do {
-                                try imageData.write(to: tempFile, options: .atomic)
-                                let documentInteractionController = UIDocumentInteractionController(url: tempFile)
-                                documentInteractionController.uti = "public.png"
-                                documentInteractionController.presentOpenInMenu(from: CGRect.zero, in: UIApplication.topViewController()!.view, animated: true)
-                                result(SUCCESS)
+                                let fileURL = tempFile
 
+                                let items: [Any] = [fileURL]
+                                let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+                                
+                                activityController.excludedActivityTypes = [
+                                    .postToVimeo,
+                                    .postToFlickr,
+                                    .assignToContact,
+                                    .saveToCameraRoll,
+                                    .addToReadingList,
+                                    .copyToPasteboard,
+                                    .mail,
+                                    .markupAsPDF,
+                                    .message,
+                                    .openInIBooks,
+                                    .postToFacebook,
+                                    .postToTencentWeibo,
+                                    .postToTwitter,
+                                    .postToWeibo,
+                                    .print // Remove those less relevant for this action
+                                ]
+                                
+                                guard let topVC = UIApplication.topViewController() else {
+                                    result(FlutterError(code: "VIEW_ERROR", message: "Could not find top view controller", details: nil))
+                                    return
+                                }
+                                
+                                if let popoverController = activityController.popoverPresentationController {
+                                    popoverController.sourceView = topVC.view
+                                    // Center the popover
+                                    popoverController.sourceRect = CGRect(x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0)
+                                    popoverController.permittedArrowDirections = []
+                                }
+                                
+                                topVC.present(activityController, animated: true) {
+                                    result(self.SUCCESS)
+                                }
                             } catch {
                                 print("ERROR: File write failed: \(error)")
                             }
