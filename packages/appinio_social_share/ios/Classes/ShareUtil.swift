@@ -419,13 +419,18 @@ public class ShareUtil{
             return
         }
         
+        guard let facebookID = appId else {
+            result("ERROR_APP_ID_NOT_AVAILABLE")
+            return
+        }
+        
         
         if (UIApplication.shared.canOpenURL(facebookURL)) {
             var pasteboardItems = [
-                "com.facebook.sharedSticker.attributionURL": [attributionURL ?? ""],
+                "com.facebook.sharedSticker.attributionURL": ["fb\(facebookID)://story"],
                 "com.facebook.sharedSticker.backgroundTopColor": backgroundTopColor ?? "",
                 "com.facebook.sharedSticker.backgroundBottomColor": backgroundBottomColor ?? "",
-                "com.facebook.sharedSticker.appID": appId as Any,
+                "com.facebook.sharedSticker.appID": "fb"+facebookID as Any,
             ]
             var backgroundImage: UIImage?;
             if(!(imagePath==nil)){
@@ -465,7 +470,7 @@ public class ShareUtil{
         }
     }
     
-    
+
     func shareToTwitter(args : [String: Any?],result: @escaping FlutterResult) {
         let title = args[self.argMessage] as? String
         let images = args[self.argImagePaths] as? [String]
