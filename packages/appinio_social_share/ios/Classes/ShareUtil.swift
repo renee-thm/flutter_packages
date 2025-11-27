@@ -565,18 +565,26 @@ public class ShareUtil{
         if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters:CharacterSet.urlQueryAllowed) {
             if let whatsappURL = URL(string: urlString) {
 
-                if UIApplication.shared.canOpenURL(whatsappURL as URL) {
+                 if UIApplication.shared.canOpenURL(whatsappURL as URL) {
 
                         if let imageData = image.jpegData(compressionQuality: 1.0) {
-                            let tempFile = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Documents/whatsAppTmp.wai")
+                            // Get the URL for the Caches Directory
+                            guard let cachesDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+                                result(FlutterError(code: "CACHE_ERROR", message: "Could not find Caches directory", details: nil))
+                                return
+                            }
+
+                            // Append the filename to the Caches Directory path
+                            let tempFile = cachesDirectory.appendingPathComponent("screenshot.png")
                             do {
                                 try imageData.write(to: tempFile, options: .atomic)
                                 let documentInteractionController = UIDocumentInteractionController(url: tempFile)
-                                documentInteractionController.uti = "net.whatsapp.image"
+                                documentInteractionController.uti = "public.png"
                                 documentInteractionController.presentOpenInMenu(from: CGRect.zero, in: UIApplication.topViewController()!.view, animated: true)
+                                result(SUCCESS)
 
                             } catch {
-                                print(error)
+                                print("ERROR: File write failed: \(error)")
                             }
                         }
                     
