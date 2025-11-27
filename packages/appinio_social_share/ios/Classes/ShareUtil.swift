@@ -404,79 +404,45 @@ public class ShareUtil{
         result(SUCCESS)
     }
     
-    public func shareToFacebookStory(args : [String: Any?],result: @escaping FlutterResult) {
+    public func shareToFacebookStory(args : [String: Any?],result: @escaping FlutterResult){
+        
         let appId = args[self.argAppId] as? String
-        let imagePath = args[self.argbackgroundImage] as? String
-        let argVideoFile = args[self.argVideoFile] as? String
         let imagePathSticker = args[self.argstickerImage] as? String
-        let backgroundTopColor = args[self.argBackgroundTopColor] as? String
-        let backgroundBottomColor =  args[self.argBackgroundBottomColor] as? String
-        let attributionURL =  args[self.argAttributionURL] as? String
-
-    
-        guard let facebookURL = URL(string: "facebook-stories://share") else {
-            result(ERROR_APP_NOT_AVAILABLE)
+        
+        guard let image = UIImage(contentsOfFile: imagePathSticker!),
+              let imageData = image.pngData() else {
+            result("DATA_IS_EMPTY")
             return
         }
         
-        guard let facebookID = appId else {
-            result("ERROR_APP_ID_NOT_AVAILABLE")
-            return
-        }
+        let pasteboardItems: [String: Any] = [
+            "com.facebook.sharedSticker.backgroundImage": imageData,
+            "com.facebook.sharedSticker.attributionURL": [""] as Any,
+            "com.facebook.sharedSticker.appID": appId as Any,
+        ]
+        UIPasteboard.general.setItems([pasteboardItems], options: [:])
         
-        if (UIApplication.shared.canOpenURL(facebookURL)) {
-            var pasteboardItems: [String: Any] = [:]
-            if #available(iOS 18, *) {
-                pasteboardItems = [
-                    "com.facebook.sharedSticker.attributionURL": [attributionURL ?? ""],
-                    "com.facebook.sharedSticker.backgroundTopColor": backgroundTopColor ?? "",
-                    "com.facebook.sharedSticker.backgroundBottomColor": backgroundBottomColor ?? "",
-                    "com.facebook.sharedSticker.appID": facebookID as Any,
-                ]
-            } else {
-                pasteboardItems = [
-                    "com.facebook.sharedSticker.attributionURL":  ["fb\(facebookID)://story"],
-                    "com.facebook.sharedSticker.backgroundTopColor": backgroundTopColor ?? "",
-                    "com.facebook.sharedSticker.backgroundBottomColor": backgroundBottomColor ?? "",
-                    "com.facebook.sharedSticker.appID": "fb"+facebookID as Any,
-                ]
-            }
-            
-            var backgroundImage: UIImage?;
-            if(!(imagePath==nil)){
-                backgroundImage =  UIImage.init(contentsOfFile: imagePath!)
-                if (backgroundImage != nil) {
-                     pasteboardItems["com.facebook.sharedSticker.backgroundImage"] = backgroundImage
-                 }
-            }
-            var stickerImage: UIImage?;
-            if(!(imagePathSticker==nil)){
-                stickerImage =  UIImage.init(contentsOfFile: imagePathSticker!)
-                if (stickerImage != nil) {
-                    pasteboardItems["com.facebook.sharedSticker.stickerImage"] = stickerImage
+        if let url = URL(string: "facebook-stories://share") {
+                    if UIApplication.shared.canOpenURL(url) {
+                        // Open the Facebook app
+                        UIApplication.shared.open(url, options: [:]) { success in
+                            if success {
+                                print("Successfully opened Facebook Stories.")
+                            } else {
+                                print("Failed to open Facebook Stories.")
+                            }
+                        }
+                        
+                        DispatchQueue.main.async {
+                            result(self.SUCCESS)
+                        }
+                        return
+                    } else {
+                        print("Facebook app not installed")
+                        result(ERROR_APP_NOT_AVAILABLE)
+                        return
+                    }
                 }
-            }
-            var backgroundVideoData:Any?;
-            if(!(argVideoFile==nil)){
-                let backgroundVideoUrl = URL(fileURLWithPath: argVideoFile!)
-                backgroundVideoData = try? Data(contentsOf: backgroundVideoUrl)
-                if (backgroundVideoData != nil) {
-                    pasteboardItems["com.facebook.sharedSticker.backgroundVideo"] = backgroundVideoData
-                }
-            }
-
-             if #available(iOS 10, *){
-                    let pasteboardOptions = [
-                        UIPasteboard.OptionsKey.expirationDate: Date().addingTimeInterval(60 * 5)
-                    ]
-                    UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
-                    UIApplication.shared.open(facebookURL, options: [:])
-             }
-            result(self.SUCCESS)
-            return
-        } else {
-            result(ERROR_APP_NOT_AVAILABLE)
-        }
     }
     
 
@@ -561,9 +527,8 @@ public class ShareUtil{
     }
     
     
-    public func shareImageToWhatsApp(args : [String: Any?],result: @escaping FlutterResult, delegate: SharingDelegate) {
+public func shareImageToWhatsApp(args : [String: Any?],result: @escaping FlutterResult, delegate: SharingDelegate) {
       let imagePath = args[self.argImagePath] as? String
-
       guard let url = URL(string: imagePath!) else {
         result(FlutterError(code: "INVALID_PATH", message: "The image path is invalid", details: nil))
         return
@@ -574,74 +539,54 @@ public class ShareUtil{
         return
       }
     
-    
         let urlWhats = "whatsapp://app"
         if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters:CharacterSet.urlQueryAllowed) {
             if let whatsappURL = URL(string: urlString) {
 
                  if UIApplication.shared.canOpenURL(whatsappURL as URL) {
 
-                        if let imageData = image.jpegData(compressionQuality: 1.0) {
-                            // Get the URL for the Caches Directory
-                            guard let cachesDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
-                                result(FlutterError(code: "CACHE_ERROR", message: "Could not find Caches directory", details: nil))
-                                return
-                            }
-
-                            // Append the filename to the Caches Directory path
-                            let tempFile = cachesDirectory.appendingPathComponent("screenshot.png")
-                            do {
-                                let fileURL = tempFile
-
-                                let items: [Any] = [fileURL]
-                                let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
-                                
-                                activityController.excludedActivityTypes = [
-                                    .postToVimeo,
-                                    .postToFlickr,
-                                    .assignToContact,
-                                    .saveToCameraRoll,
-                                    .addToReadingList,
-                                    .copyToPasteboard,
-                                    .mail,
-                                    .markupAsPDF,
-                                    .message,
-                                    .openInIBooks,
-                                    .postToFacebook,
-                                    .postToTencentWeibo,
-                                    .postToTwitter,
-                                    .postToWeibo,
-                                    .print // Remove those less relevant for this action
-                                ]
-                                
-                                guard let topVC = UIApplication.topViewController() else {
-                                    result(FlutterError(code: "VIEW_ERROR", message: "Could not find top view controller", details: nil))
-                                    return
-                                }
-                                
-                                if let popoverController = activityController.popoverPresentationController {
-                                    popoverController.sourceView = topVC.view
-                                    // Center the popover
-                                    popoverController.sourceRect = CGRect(x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0)
-                                    popoverController.permittedArrowDirections = []
-                                }
-                                
-                                topVC.present(activityController, animated: true) {
-                                    result(self.SUCCESS)
-                                }
-                            } catch {
-                                print("ERROR: File write failed: \(error)")
-                            }
-                        }
-                    
-
+                     let items: [Any] = [image]
+                     let activityController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+                     
+                     activityController.excludedActivityTypes = [
+                         .postToVimeo,
+                         .postToFlickr,
+                         .assignToContact,
+                         .saveToCameraRoll,
+                         .addToReadingList,
+                         .copyToPasteboard,
+                         .mail,
+                         .markupAsPDF,
+                         .message,
+                         .openInIBooks,
+                         .postToFacebook,
+                         .postToTencentWeibo,
+                         .postToTwitter,
+                         .postToWeibo,
+                         .print // Remove those less relevant for this action
+                     ]
+                     
+                     guard let topVC = UIApplication.topViewController() else {
+                         result(FlutterError(code: "VIEW_ERROR", message: "Could not find top view controller", details: nil))
+                         return
+                     }
+                     
+                     if let popoverController = activityController.popoverPresentationController {
+                         popoverController.sourceView = topVC.view
+                         // Center the popover
+                         popoverController.sourceRect = CGRect(x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0)
+                         popoverController.permittedArrowDirections = []
+                     }
+                     
+                     topVC.present(activityController, animated: true) {
+                         result(self.SUCCESS)
+                     }
                 } else {
                    print("Cannot open whatsapp")
                 }
             }
         }
     }
-    
 }
 
 extension UIApplication {
