@@ -407,7 +407,7 @@ public class ShareUtil{
     public func shareToFacebookStory(args : [String: Any?],result: @escaping FlutterResult){
         
         let appId = args[self.argAppId] as? String
-        let imagePathSticker = args[self.argstickerImage] as? String
+        let imagePathSticker = args[self.argbackgroundImage] as? String
         
         guard let image = UIImage(contentsOfFile: imagePathSticker!),
               let imageData = image.pngData() else {
