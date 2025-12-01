@@ -414,13 +414,18 @@ public class ShareUtil{
             result("DATA_IS_EMPTY")
             return
         }
-        
+
         let pasteboardItems: [String: Any] = [
             "com.facebook.sharedSticker.backgroundImage": imageData,
             "com.facebook.sharedSticker.attributionURL": [""] as Any,
             "com.facebook.sharedSticker.appID": appId as Any,
         ]
-        UIPasteboard.general.setItems([pasteboardItems], options: [:])
+
+        let pasteboardOptions: [UIPasteboard.OptionsKey: Any] = [
+            UIPasteboard.OptionsKey.expirationDate: Date().addingTimeInterval(60 * 5)
+        ]
+        
+        UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
         
         if let url = URL(string: "facebook-stories://share") {
                     if UIApplication.shared.canOpenURL(url) {
