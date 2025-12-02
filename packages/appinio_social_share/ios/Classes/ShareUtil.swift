@@ -407,20 +407,31 @@ public class ShareUtil{
     public func shareToFacebookStory(args : [String: Any?],result: @escaping FlutterResult){
         
         let appId = args[self.argAppId] as? String
-        let imagePathSticker = args[self.argbackgroundImage] as? String
-        
-        guard let image = UIImage(contentsOfFile: imagePathSticker!),
-              let imageData = image.jpegData(compressionQuality: 0.4) else {
-            result("DATA_IS_EMPTY")
-            return
-        }
-
-        let pasteboardItems: [String: Any] = [
-            "com.facebook.sharedSticker.backgroundImage": imageData,
+        let imagePath = args[self.argbackgroundImage] as? String
+        let imagePathSticker = args[self.argstickerImage] as? String
+        var pasteboardItems: [String: Any] = [
             "com.facebook.sharedSticker.attributionURL": "",
             "com.facebook.sharedSticker.appID": appId as Any,
         ]
-
+        
+        if(!(imagePath==nil)){
+            guard let image = UIImage(contentsOfFile: imagePath!),
+                  let imageData = image.jpegData(compressionQuality: 0.4) else {
+                result("DATA_IS_EMPTY")
+                return
+            }
+            pasteboardItems["com.facebook.sharedSticker.backgroundImage"] = imageData
+        }
+    
+        if(!(imagePathSticker==nil)){
+            guard let stickerImage = UIImage(contentsOfFile: imagePathSticker!),
+                  let stickerImageData = stickerImage.jpegData(compressionQuality: 0.4) else {
+                result("DATA_IS_EMPTY")
+                return
+            }
+            pasteboardItems["com.facebook.sharedSticker.stickerImage"] = stickerImageData
+        }
+        
         let pasteboardOptions: [UIPasteboard.OptionsKey: Any] = [
             UIPasteboard.OptionsKey.expirationDate: Date().addingTimeInterval(60 * 5)
         ]
