@@ -410,14 +410,14 @@ public class ShareUtil{
         let imagePathSticker = args[self.argbackgroundImage] as? String
         
         guard let image = UIImage(contentsOfFile: imagePathSticker!),
-              let imageData = image.pngData() else {
+              let imageData = image.jpegData(compressionQuality: 0.4) else {
             result("DATA_IS_EMPTY")
             return
         }
 
         let pasteboardItems: [String: Any] = [
             "com.facebook.sharedSticker.backgroundImage": imageData,
-            "com.facebook.sharedSticker.attributionURL": [""] as Any,
+            "com.facebook.sharedSticker.attributionURL": "",
             "com.facebook.sharedSticker.appID": appId as Any,
         ]
 
@@ -426,7 +426,7 @@ public class ShareUtil{
         ]
         
         UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
-        
+                
         if let url = URL(string: "facebook-stories://share") {
                     if UIApplication.shared.canOpenURL(url) {
                         // Open the Facebook app
