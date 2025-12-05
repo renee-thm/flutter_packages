@@ -416,7 +416,7 @@ public class ShareUtil{
         
         if(!(imagePath==nil)){
             guard let image = UIImage(contentsOfFile: imagePath!),
-                  let imageData = image.jpegData(compressionQuality: 0.4) else {
+                  let imageData = image.jpegData(compressionQuality: 0.7) else {
                 result("DATA_IS_EMPTY")
                 return
             }
@@ -425,7 +425,7 @@ public class ShareUtil{
     
         if(!(imagePathSticker==nil)){
             guard let stickerImage = UIImage(contentsOfFile: imagePathSticker!),
-                  let stickerImageData = stickerImage.jpegData(compressionQuality: 0.4) else {
+                  let stickerImageData = stickerImage.jpegData(compressionQuality: 0.7) else {
                 result("DATA_IS_EMPTY")
                 return
             }
